@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>
+//This model corresponds to the second solution to the Dining
+//Philosophers Problem discussed by Stallings
+//in Figure 6.13 (Operating Systems, Fifth edition).
+
+//Model constructed by Frits Vaandrager on 21/3/06
+
+const int M = 6;  //Number of semaphores
+const int N = 5;  //Number of philosophers
+
+const int room = 5;
+
+
+chan semWait[M][N];
+chan semSignal[M][N];
+chan semGo[M][N];
+
+</declaration><template><name x="5" y="5">Philosopher</name><parameter>const int pid</parameter><declaration>
+</declaration><location id="id0" x="320" y="160"></location><location id="id1" x="512" y="-32"></location><location id="id2" x="320" y="-32"><name x="310" y="-62">try</name></location><location id="id3" x="704" y="-32"></location><location id="id4" x="704" y="112"></location><location id="id5" x="704" y="256"></location><location id="id6" x="512" y="256"><name x="502" y="226">eat</name></location><location id="id7" x="320" y="256"></location><location id="id8" x="320" y="64"><name x="264" y="48">think</name></location><init ref="id8"/><transition><source ref="id0"/><target ref="id8"/><label kind="synchronisation" x="328" y="104">semSignal[room][pid]!</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="360" y="-56">semGo[room][pid]?</label></transition><transition><source ref="id8"/><target ref="id2"/><label kind="synchronisation" x="328" y="16">semWait[room][pid]!</label></transition><transition><source ref="id1"/><target ref="id3"/><label kind="synchronisation" x="544" y="-56">semWait[pid][pid]!</label></transition><transition><source ref="id3"/><target ref="id4"/><label kind="synchronisation" x="584" y="16">semGo[pid][pid]?</label></transition><transition><source ref="id4"/><target ref="id5"/><label kind="synchronisation" x="528" y="160">semWait[(pid+1)%5][pid]!</label></transition><transition><source ref="id5"/><target ref="id6"/><label kind="synchronisation" x="528" y="272">semGo[(pid+1)%5][pid]?</label></transition><transition><source ref="id6"/><target ref="id7"/><label kind="synchronisation" x="320" y="272">semSignal[(pid+1)%5][pid]!</label></transition><transition><source ref="id7"/><target ref="id0"/><label kind="synchronisation" x="328" y="200">semSignal[pid][pid]!</label></transition></template><template><name>Semaphore</name><parameter>const int id,  const int queue_size, const int init_val</parameter><declaration>//The value of the semaphore
+int count = init_val;
+//The queue of the semaphore
+//value -1 denotes an empty array entry
+int[-1,N-1] queue[queue_size];
+//An auxiliary variable used to temporarily store process id
+meta int[0,N-1] q;
+
+void initialize ()
+{
+  for (i : int[0,queue_size-1])
+      {queue[i] = -1;}
+}
+
+void deQueue ()
+{
+  for (i : int[1,queue_size-1])
+    queue[i-1] = queue[i];
+  queue[queue_size-1] = -1;
+}
+
+void enQueue (int p)
+{
+  int i = 0;
+  while (queue[i]&gt;=0){i++;};
+  queue[i]=p;
+}
+
+int[0,N-1] headQueue ( )
+{
+  return queue[0];
+}
+
+bool fullQueue ( )
+{
+  for (i : int[0,queue_size-1])
+   {
+     if (queue[i]==-1) {return false;}
+   }
+  return true;
+}</declaration><location id="id9" x="384" y="64"><committed/></location><location id="id10" x="608" y="320"><committed/></location><location id="id11" x="352" y="96"><name x="288" y="64">overflow</name></location><location id="id12" x="480" y="192"></location><init ref="id9"/><transition><source ref="id9"/><target ref="id12"/><label kind="assignment" x="408" y="72">initialize()</label></transition><transition><source ref="id12"/><target ref="id12"/><label kind="select" x="272" y="192">p:int[0,N-1]</label><label kind="guard" x="272" y="208">count&gt;=0</label><label kind="synchronisation" x="272" y="224">semSignal[id][p]?</label><label kind="assignment" x="272" y="240">count++</label><nail x="352" y="192"/><nail x="352" y="224"/></transition><transition><source ref="id12"/><target ref="id10"/><label kind="select" x="552" y="104">p:int[0,N-1]</label><label kind="guard" x="552" y="120">count&gt;0</label><label kind="synchronisation" x="552" y="136">semWait[id][p]?</label><label kind="assignment" x="552" y="152">count--,
+q=p</label><nail x="608" y="192"/></transition><transition><source ref="id12"/><target ref="id11"/><label kind="select" x="248" y="112">p:int[0,N-1]</label><label kind="guard" x="248" y="128">count&lt;=0 &amp;&amp; fullQueue()</label><label kind="synchronisation" x="248" y="144">semWait[id][p]?</label></transition><transition><source ref="id10"/><target ref="id12"/><label kind="synchronisation" x="512" y="208">semGo[id][q]!</label></transition><transition><source ref="id12"/><target ref="id10"/><label kind="select" x="360" y="280">p:int[0,N-1]</label><label kind="guard" x="360" y="296">count&lt;0</label><label kind="synchronisation" x="360" y="312">semSignal[id][p]?</label><label kind="assignment" x="360" y="328">count++,
+q=headQueue(),
+deQueue()</label><nail x="480" y="320"/></transition><transition><source ref="id12"/><target ref="id12"/><label kind="select" x="480" y="-24">p:int[0,N-1]</label><label kind="guard" x="480" y="-8">count&lt;=0 &amp;&amp; not fullQueue()</label><label kind="synchronisation" x="480" y="8">semWait[id][p]?</label><label kind="assignment" x="480" y="24">count--,
+enQueue(p)</label><nail x="480" y="64"/><nail x="512" y="64"/></transition></template><system>//Insert process assignments.
+
+
+Fork0 = Semaphore(0,2,1);
+Fork1 = Semaphore(1,2,1);
+Fork2 = Semaphore(2,2,1);
+Fork3 = Semaphore(3,2,1);
+Fork4 = Semaphore(4,2,1);
+Doorman = Semaphore(room,2,4);
+
+Philosopher0 = Philosopher(0);
+Philosopher1 = Philosopher(1);
+Philosopher2 = Philosopher(2);
+Philosopher3 = Philosopher(3);
+Philosopher4 = Philosopher(4);
+
+//Edit system definition.
+system Fork0, Fork1, Fork2, Fork3, Fork4, Doorman, Philosopher0, Philosopher1, Philosopher2, Philosopher3, Philosopher4;</system></nta>
