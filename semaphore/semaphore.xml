@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.0//EN' 'http://www.docs.uu.se/docs/rtmv/uppaal/xml/flat-1_0.dtd'><nta><declaration>//This model is an adaptation by Frits Vaandrager of
+//a model made by Martijn Hendriks
+
+// Number of processes in system:
+const int N = 4; 
+
+// Number of semaphores:
+const int M = 1;
+
+// Names of the semaphores, ranging from 0 to M-1:
+const int s = 0;
+
+// The channels to synchronize with the semafores
+// A call semWait(s) by process p translates to a sequence of two transitions labeled with
+//      semWait(s)(p)!
+//      semGo(s)(p)?
+//A call semSignal(s) by process p translates to a transition labeled with
+//     semSignal(s)(p)!
+chan semWait[M][N], semGo[M][N], semSignal[M][N];
+</declaration><template><name>Semaphore</name><parameter>const int id,  const int queue_size, const int init_val</parameter><declaration>//The value of the semaphore
+int count = init_val;
+//The queue of the semaphore
+//value -1 denotes an empty array entry
+int[-1,N-1] queue[queue_size];
+//An auxiliary variable used to temporarily store process id
+meta int[0,N-1] q;
+
+void initialize ()
+{
+  for (i : int[0,queue_size-1])
+      {queue[i] = -1;}
+}
+
+void deQueue ()
+{
+  for (i : int[1,queue_size-1])
+    queue[i-1] = queue[i];
+  queue[queue_size-1] = -1;
+}
+
+void enQueue (int p)
+{
+  int i = 0;
+  while (queue[i]&gt;=0){i++;};
+  queue[i]=p;
+}
+
+int[0,N-1] headQueue ( )
+{
+  return queue[0];
+}
+
+bool fullQueue ( )
+{
+  for (i : int[0,queue_size-1])
+   {
+     if (queue[i]==-1) {return false;}
+   }
+  return true;
+}</declaration><location id="id0" x="384" y="64"><committed/></location><location id="id1" x="608" y="320"><committed/></location><location id="id2" x="352" y="96"><name x="288" y="64">overflow</name></location><location id="id3" x="480" y="192"></location><init ref="id0"/><transition><source ref="id0"/><target ref="id3"/><label kind="assignment" x="408" y="72">initialize()</label></transition><transition><source ref="id3"/><target ref="id3"/><label kind="select" x="272" y="192">p:int[0,N-1]</label><label kind="guard" x="272" y="208">count&gt;=0</label><label kind="synchronisation" x="272" y="224">semSignal[id][p]?</label><label kind="assignment" x="272" y="240">count++</label><nail x="352" y="192"/><nail x="352" y="224"/></transition><transition><source ref="id3"/><target ref="id1"/><label kind="select" x="552" y="104">p:int[0,N-1]</label><label kind="guard" x="552" y="120">count&gt;0</label><label kind="synchronisation" x="552" y="136">semWait[id][p]?</label><label kind="assignment" x="552" y="152">count--,
+q=p</label><nail x="608" y="192"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="select" x="248" y="112">p:int[0,N-1]</label><label kind="guard" x="248" y="128">count&lt;=0 &amp;&amp; fullQueue()</label><label kind="synchronisation" x="248" y="144">semWait[id][p]?</label></transition><transition><source ref="id1"/><target ref="id3"/><label kind="synchronisation" x="512" y="208">semGo[id][q]!</label></transition><transition><source ref="id3"/><target ref="id1"/><label kind="select" x="360" y="280">p:int[0,N-1]</label><label kind="guard" x="360" y="296">count&lt;0</label><label kind="synchronisation" x="360" y="312">semSignal[id][p]?</label><label kind="assignment" x="360" y="328">count++,
+q=headQueue(),
+deQueue()</label><nail x="480" y="320"/></transition><transition><source ref="id3"/><target ref="id3"/><label kind="select" x="480" y="-24">p:int[0,N-1]</label><label kind="guard" x="480" y="-8">count&lt;=0 &amp;&amp; not fullQueue()</label><label kind="synchronisation" x="480" y="8">semWait[id][p]?</label><label kind="assignment" x="480" y="24">count--,
+enQueue(p)</label><nail x="480" y="64"/><nail x="512" y="64"/></transition></template><template><name x="5" y="5">Process</name><parameter>const int pid</parameter><location id="id4" x="-736" y="32"></location><location id="id5" x="-576" y="-128"><name x="-552" y="-136">cs</name></location><location id="id6" x="-736" y="-128"></location><init ref="id6"/><transition><source ref="id5"/><target ref="id6"/><label kind="synchronisation" x="-712" y="-152">semSignal[s][pid]!</label></transition><transition><source ref="id4"/><target ref="id5"/><label kind="synchronisation" x="-640" y="-56">semGo[s][pid]?</label></transition><transition><source ref="id6"/><target ref="id4"/><label kind="synchronisation" x="-840" y="-56">semWait[s][pid]!</label></transition></template><system>A = Process(0);
+B = Process(1);
+C = Process(2);
+D = Process(3);
+Sem = Semaphore(s,N-1,1);
+system
+	A,
+	B,
+	C,
+	D,
+	Sem;
+</system></nta>
