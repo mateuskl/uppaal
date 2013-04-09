@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
+const int iterations = 100;
+
+const int NUM_SEMAPHORES = 5;
+const int NUM_PHILOSOPHERS = 5;
+const int N = NUM_PHILOSOPHERS;
+
+chan semWait[NUM_SEMAPHORES][NUM_PHILOSOPHERS];
+chan semSignal[NUM_SEMAPHORES][NUM_PHILOSOPHERS];
+chan semGo[NUM_SEMAPHORES][NUM_PHILOSOPHERS];</declaration><template><name x="5" y="5">Philosopher</name><parameter>const int n</parameter><declaration>// Place local declarations here.
+int i = 0;</declaration><location id="id0" x="-208" y="16"></location><location id="id1" x="-144" y="80"><name x="-168" y="104">eating</name></location><location id="id2" x="-72" y="16"></location><location id="id3" x="-16" y="-48"></location><location id="id4" x="-16" y="-112"></location><location id="id5" x="-272" y="-112"><name x="-336" y="-120">done</name></location><location id="id6" x="-144" y="-176"><name x="-168" y="-224">thinking</name></location><init ref="id6"/><transition><source ref="id0"/><target ref="id6"/><label kind="synchronisation" x="-424" y="-56">semSignal[(n &lt; 4)? n + 1 : 4][n]!</label><label kind="assignment" x="-236" y="-80">i++</label></transition><transition><source ref="id6"/><target ref="id4"/><label kind="guard" x="-120" y="-184">i &lt; iterations</label><label kind="synchronisation" x="-64" y="-168">semWait[(n &lt; 4)? n : 0][n]!</label></transition><transition><source ref="id1"/><target ref="id0"/><label kind="synchronisation" x="-376" y="64">semSignal[(n &lt; 4)? n : 0][n]!</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-88" y="48">semGo[(n &lt; 4)? n + 1 : 4][n]?</label></transition><transition><source ref="id3"/><target ref="id2"/><label kind="synchronisation" x="-32" y="-16">semWait[(n &lt; 4)? n + 1 : 4][n]!</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="8" y="-88">semGo[(n &lt; 4)? n : 0][n]?</label></transition><transition><source ref="id6"/><target ref="id5"/><label kind="guard" x="-272" y="-184">i &gt;= iterations</label></transition></template><template><name>Semaphore</name><parameter>const int id,  const int queue_size, const int init_val</parameter><declaration>//The value of the semaphore
+int count = init_val;
+//The queue of the semaphore
+//value -1 denotes an empty array entry
+int[-1,N-1] queue[queue_size];
+//An auxiliary variable used to temporarily store process id
+meta int[0,N-1] q;
+
+void initialize ()
+{
+  for (i : int[0,queue_size-1])
+      {queue[i] = -1;}
+}
+
+void deQueue ()
+{
+  for (i : int[1,queue_size-1])
+    queue[i-1] = queue[i];
+  queue[queue_size-1] = -1;
+}
+
+void enQueue (int p)
+{
+  int i = 0;
+  while (queue[i]&gt;=0){i++;};
+  queue[i]=p;
+}
+
+int[0,N-1] headQueue ( )
+{
+  return queue[0];
+}
+
+bool fullQueue ( )
+{
+  for (i : int[0,queue_size-1])
+   {
+     if (queue[i]==-1) {return false;}
+   }
+  return true;
+}</declaration><location id="id7" x="384" y="64"><committed/></location><location id="id8" x="608" y="320"><committed/></location><location id="id9" x="352" y="96"><name x="288" y="64">overflow</name></location><location id="id10" x="480" y="192"></location><init ref="id7"/><transition><source ref="id7"/><target ref="id10"/><label kind="assignment" x="408" y="72">initialize()</label></transition><transition><source ref="id10"/><target ref="id10"/><label kind="select" x="272" y="192">p:int[0,N-1]</label><label kind="guard" x="272" y="208">count&gt;=0</label><label kind="synchronisation" x="272" y="224">semSignal[id][p]?</label><label kind="assignment" x="272" y="240">count++</label><nail x="352" y="192"/><nail x="352" y="224"/></transition><transition><source ref="id10"/><target ref="id8"/><label kind="select" x="552" y="104">p:int[0,N-1]</label><label kind="guard" x="552" y="120">count&gt;0</label><label kind="synchronisation" x="552" y="136">semWait[id][p]?</label><label kind="assignment" x="552" y="152">count--,
+q=p</label><nail x="608" y="192"/></transition><transition><source ref="id10"/><target ref="id9"/><label kind="select" x="248" y="112">p:int[0,N-1]</label><label kind="guard" x="248" y="128">count&lt;=0 &amp;&amp; fullQueue()</label><label kind="synchronisation" x="248" y="144">semWait[id][p]?</label></transition><transition><source ref="id8"/><target ref="id10"/><label kind="synchronisation" x="512" y="208">semGo[id][q]!</label></transition><transition><source ref="id10"/><target ref="id8"/><label kind="select" x="360" y="280">p:int[0,N-1]</label><label kind="guard" x="360" y="296">count&lt;0</label><label kind="synchronisation" x="360" y="312">semSignal[id][p]?</label><label kind="assignment" x="360" y="328">count++,
+q=headQueue(),
+deQueue()</label><nail x="480" y="320"/></transition><transition><source ref="id10"/><target ref="id10"/><label kind="select" x="480" y="-24">p:int[0,N-1]</label><label kind="guard" x="480" y="-8">count&lt;=0 &amp;&amp; not fullQueue()</label><label kind="synchronisation" x="480" y="8">semWait[id][p]?</label><label kind="assignment" x="480" y="24">count--,
+enQueue(p)</label><nail x="480" y="64"/><nail x="512" y="64"/></transition></template><system>// Place template instantiations here.
+chopstick0 = Semaphore(0,1,1);
+chopstick1 = Semaphore(1,1,1);
+chopstick2 = Semaphore(2,1,1);
+chopstick3 = Semaphore(3,1,1);
+chopstick4 = Semaphore(4,1,1);
+
+phil0 = Philosopher(0);
+phil1 = Philosopher(1);
+phil2 = Philosopher(2);
+phil3 = Philosopher(3);
+phil4 = Philosopher(4);
+
+// List one or more processes to be composed into a system.
+system chopstick0, chopstick1, chopstick2, chopstick3, chopstick4, phil0, phil1, phil2, phil3, phil4;</system></nta>
