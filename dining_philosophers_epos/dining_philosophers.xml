@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
 const int iterations = 100;
 
-const int NUM_SEMAPHORES = 5;
-const int NUM_PHILOSOPHERS = 5;
-const int N = NUM_PHILOSOPHERS;
+const int M = 5; // NUM_SEMAPHORES
+const int N = 5; // NUM_PHILOSOPHERS
 
-chan semWait[NUM_SEMAPHORES][NUM_PHILOSOPHERS];
-chan semSignal[NUM_SEMAPHORES][NUM_PHILOSOPHERS];
-chan semGo[NUM_SEMAPHORES][NUM_PHILOSOPHERS];</declaration><template><name x="5" y="5">Philosopher</name><parameter>const int n</parameter><declaration>// Place local declarations here.
-int i = 0;
-int first;
-int second;
+chan semWait[M][N];
+chan semSignal[M][N];
+chan semGo[M][N];</declaration><template><name x="5" y="5">Philosopher</name><parameter>const int[0,4] n</parameter><declaration>// Place local declarations here.
+int[0,iterations] i = 0;
+int[0,N-1] first = 0;
+int[0,N-1] second = 0;
 
 void prepare_to_get_chopsticks()
 {
 	first = (n &lt; 4)? n : 0;
 	second = (n &lt; 4)? n + 1 : 4;
-}</declaration><location id="id0" x="112" y="-112"></location><location id="id1" x="-208" y="16"></location><location id="id2" x="-144" y="80"><name x="-168" y="104">eating</name></location><location id="id3" x="112" y="16"></location><location id="id4" x="112" y="-48"></location><location id="id5" x="112" y="-176"></location><location id="id6" x="-368" y="-176"><name x="-432" y="-184">done</name></location><location id="id7" x="-144" y="-176"><name x="-168" y="-224">thinking</name></location><init ref="id7"/><transition><source ref="id0"/><target ref="id4"/><label kind="synchronisation" x="128" y="-88">semGo[first][n]?</label></transition><transition><source ref="id5"/><target ref="id0"/><label kind="synchronisation" x="128" y="-152">semWait[first][n]!</label></transition><transition><source ref="id1"/><target ref="id7"/><label kind="synchronisation" x="-384" y="-32">semSignal[second][n]!</label><label kind="assignment" x="-236" y="-80">i++</label></transition><transition><source ref="id7"/><target ref="id5"/><label kind="guard" x="-64" y="-200">i &lt; iterations</label><label kind="assignment" x="-136" y="-160">prepare_to_get_chopsticks()</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-376" y="64">semSignal[first][n]!</label></transition><transition><source ref="id3"/><target ref="id2"/><label kind="synchronisation" x="-56" y="64">semGo[second][n]?</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="128" y="-16">semWait[second][n]!</label></transition><transition><source ref="id7"/><target ref="id6"/><label kind="guard" x="-296" y="-200">i &gt;= iterations</label></transition></template><template><name>Semaphore</name><parameter>const int id,  const int queue_size, const int init_val</parameter><declaration>//The value of the semaphore
+}</declaration><location id="id0" x="112" y="-112"></location><location id="id1" x="-208" y="16"></location><location id="id2" x="-144" y="80"><name x="-168" y="104">eating</name></location><location id="id3" x="112" y="16"></location><location id="id4" x="112" y="-48"></location><location id="id5" x="112" y="-176"></location><location id="id6" x="-368" y="-176"><name x="-432" y="-184">done</name></location><location id="id7" x="-144" y="-176"><name x="-168" y="-224">thinking</name></location><init ref="id7"/><transition><source ref="id0"/><target ref="id4"/><label kind="synchronisation" x="128" y="-88">semGo[first][n]?</label></transition><transition><source ref="id5"/><target ref="id0"/><label kind="synchronisation" x="128" y="-152">semWait[first][n]!</label></transition><transition><source ref="id1"/><target ref="id7"/><label kind="synchronisation" x="-384" y="-32">semSignal[second][n]!</label><label kind="assignment" x="-256" y="-80">i := i + 1</label></transition><transition><source ref="id7"/><target ref="id5"/><label kind="guard" x="-64" y="-200">i &lt; iterations</label><label kind="assignment" x="-136" y="-160">prepare_to_get_chopsticks()</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-376" y="64">semSignal[first][n]!</label></transition><transition><source ref="id3"/><target ref="id2"/><label kind="synchronisation" x="-56" y="64">semGo[second][n]?</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="128" y="-16">semWait[second][n]!</label></transition><transition><source ref="id7"/><target ref="id6"/><label kind="guard" x="-296" y="-200">i &gt;= iterations</label></transition></template><template><name>Semaphore</name><parameter>const int id,  const int queue_size, const int init_val</parameter><declaration>//The value of the semaphore
 int count = init_val;
 //The queue of the semaphore
 //value -1 denotes an empty array entry
