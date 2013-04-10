@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
 const int iterations = 100;
 
-const int M = 5; // NUM_SEMAPHORES
-const int N = 5; // NUM_PHILOSOPHERS
+const int NUM_SEMAPHORES = 5;
+const int NUM_PHILOSOPHERS = 5;
+const int N = NUM_PHILOSOPHERS;  // Semaphore requires a constant named "N"
 
-chan semWait[M][N];
-chan semSignal[M][N];
-chan semGo[M][N];</declaration><template><name x="5" y="5">Philosopher</name><parameter>const int[0,4] n</parameter><declaration>// Place local declarations here.
+chan semWait[NUM_SEMAPHORES][NUM_PHILOSOPHERS];
+chan semSignal[NUM_SEMAPHORES][NUM_PHILOSOPHERS];
+chan semGo[NUM_SEMAPHORES][NUM_PHILOSOPHERS];</declaration><template><name x="5" y="5">Philosopher</name><parameter>const int[0,4] n</parameter><declaration>// Place local declarations here.
 int[0,iterations] i = 0;
 int[0,N-1] first = 0;
 int[0,N-1] second = 0;
@@ -60,11 +61,13 @@ q=p</label><nail x="608" y="192"/></transition><transition><source ref="id11"/><
 q=headQueue(),
 deQueue()</label><nail x="480" y="320"/></transition><transition><source ref="id11"/><target ref="id11"/><label kind="select" x="480" y="-24">p:int[0,N-1]</label><label kind="guard" x="480" y="-8">count&lt;=0 &amp;&amp; not fullQueue()</label><label kind="synchronisation" x="480" y="8">semWait[id][p]?</label><label kind="assignment" x="480" y="24">count--,
 enQueue(p)</label><nail x="480" y="64"/><nail x="512" y="64"/></transition></template><system>// Place template instantiations here.
-chopstick0 = Semaphore(0,1,1);
-chopstick1 = Semaphore(1,1,1);
-chopstick2 = Semaphore(2,1,1);
-chopstick3 = Semaphore(3,1,1);
-chopstick4 = Semaphore(4,1,1);
+
+// Semaphore(const int id,  const int queue_size, const int init_val)
+chopstick0 = Semaphore(0,2,1); // At most two philosophers can compete by the same chopstick, so the queue_size is 2.
+chopstick1 = Semaphore(1,2,1);
+chopstick2 = Semaphore(2,2,1);
+chopstick3 = Semaphore(3,2,1);
+chopstick4 = Semaphore(4,2,1);
 
 phil0 = Philosopher(0);
 phil1 = Philosopher(1);
